@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfer Status</title>
+    <title>Transfer Status - Static</title>
     <style>
         :root {
             --bg-color: #1c1c1e;
@@ -42,24 +42,36 @@
             overflow: hidden;
         }
 
-        /* Header, Top Info, Tabs - No changes */
         .app-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background-color: var(--bg-color); border-bottom: 1px solid var(--divider-color); }
         .header-icon { font-size: 24px; color: var(--text-color); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
         .right-icons { display: flex; gap: 15px; }
+
         .top-info { display: flex; flex-direction: column; align-items: center; padding: 30px 20px; text-align: center; }
-        .status-icon-container { width: 64px; height: 64px; border-radius: 50%; background-color: var(--icon-bg-color); border: 2px solid var(--accent-green); display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+        .status-icon-container {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: var(--icon-bg-color);
+            /* Static state: "on its way", so border is green */
+            border: 2px solid var(--accent-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+        }
         .status-icon-container .icon { font-size: 32px; color: var(--text-color); }
         .status-label { font-size: 15px; color: var(--text-secondary-color); margin-bottom: 8px; }
         .amount-display { font-size: 34px; font-weight: 600; color: var(--text-color); margin-bottom: 8px; }
         .recipient-name { font-size: 17px; color: var(--text-secondary-color); margin-bottom: 20px; }
         .general-tag { display: inline-flex; align-items: center; background-color: var(--card-bg-color); color: var(--text-secondary-color); padding: 7px 14px; border-radius: 18px; font-size: 14px; }
         .general-tag .icon { margin-right: 8px; font-size: 17px; }
+
         .tabs { display: flex; background-color: var(--card-bg-color); margin: 0 20px 25px 20px; border-radius: 10px; padding: 5px; }
-        .tab-button { flex: 1; padding: 12px; background-color: transparent; border: none; color: var(--text-secondary-color); font-size: 16px; font-weight: 500; cursor: pointer; border-radius: 7px; transition: background-color 0.2s, color 0.2s; }
+        .tab-button { flex: 1; padding: 12px; background-color: transparent; border: none; color: var(--text-secondary-color); font-size: 16px; font-weight: 500; cursor: default; /* No pointer cursor for non-interactive tabs */ border-radius: 7px; transition: background-color 0.2s, color 0.2s; }
+        /* "Updates" tab is active by default */
         .tab-button.active { background-color: var(--bg-color); color: var(--text-color); }
 
 
-        /* Timeline Section */
         .timeline-section {
             padding: 0 30px 30px 30px;
             flex-grow: 1;
@@ -71,9 +83,8 @@
         }
         .timeline-item {
             display: flex;
-            /* align-items: flex-start; -- We'll use padding on content for alignment control */
             position: relative;
-            padding-left: 35px; /* Increased space for marker + ensure content starts aligned */
+            padding-left: 35px;
             padding-bottom: 28px;
         }
         .timeline-item:last-child {
@@ -83,7 +94,7 @@
         .timeline-item::before { /* The connecting line */
             content: '';
             position: absolute;
-            left: 10px; /* Center of the 20px marker width (10px) - half line width (1px) = 9px */
+            left: 10px;
             top: 0;
             bottom: 0;
             width: 2px;
@@ -91,11 +102,11 @@
             z-index: 1;
         }
         .timeline-item:first-child::before {
-            top: 12px; /* Start line at visual center of icon box */
+            top: 12px;
         }
         .timeline-item:last-child::before {
             bottom: auto;
-            height: 12px; /* End line at visual center of icon box */
+            height: 12px;
         }
         .timeline-item.status-pending:not(.is-final-eta):last-child::before {
             display: none;
@@ -112,84 +123,78 @@
         .timeline-marker {
             position: absolute;
             left: 0;
-            top: 0; /* Align with top of timeline-item */
-            width: 20px; /* Width of the icon area */
-            height: 24px; /* Match timeline-icon height for easier alignment */
+            top: 0;
+            width: 20px;
+            height: 24px;
             display: flex;
-            align-items: center; /* Vertically center icon within this marker space */
-            justify-content: center; /* Horizontally center icon */
+            align-items: center;
+            justify-content: center;
             z-index: 2;
         }
         .timeline-icon {
-            width: auto; /* Let content (checkmark) define width, or set fixed for dot */
-            height: auto; /* Let content define height */
+            width: auto;
+            height: auto;
             box-sizing: border-box;
-            display: flex; /* Useful for centering if needed */
+            display: flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--bg-color); /* Breaks the line */
-            padding: 2px 0; /* Small vertical padding for line break effect */
-             /* Text content alignment with title will be primarily due to this icon box's placement
-                and the .timeline-content starting at the same horizontal line.
-             */
+            background-color: var(--bg-color);
+            padding: 2px 0;
         }
 
         .timeline-content {
             flex-grow: 1;
-            /* padding-left: 10px; Removed, padding-left on timeline-item handles this */
-            /* All text elements (timestamp, title, desc) will naturally align left */
         }
         .timeline-timestamp {
             font-size: 15px;
             font-weight: 500;
             color: var(--text-secondary-color);
-            margin: 0 0 5px 0; /* Reset top margin, ensure left alignment */
-            line-height: 1.4; /* Align with title's first line */
+            margin: 0 0 5px 0;
+            line-height: 1.4;
         }
         .timeline-step-title {
             font-size: 17px;
             color: var(--text-color);
             line-height: 1.4;
             font-weight: 500;
-            margin: 0 0 6px 0; /* Reset top margin */
+            margin: 0 0 6px 0;
         }
         .timeline-step-description {
             font-size: 16px;
             color: var(--text-secondary-color);
-            margin: 0; /* Reset top margin */
+            margin: 0;
             line-height: 1.5;
             word-break: break-word;
+            /* white-space: pre-line; /* Not strictly needed if using <br> */
         }
 
         /* Status-Specific Styling for Timeline Icons */
         .timeline-item.status-completed .timeline-icon,
         .timeline-item.status-active .timeline-icon {
             color: var(--accent-green);
-            font-size: 22px; /* Larger checkmark */
+            font-size: 22px;
             font-weight: bold;
-            line-height: 1; /* Prevent extra space from line-height */
-            padding: 0 3px; /* Adjust padding for checkmark visual balance with bg cutout */
+            line-height: 1;
+            padding: 0 3px;
         }
 
         .timeline-item.is-final-eta.status-pending .timeline-icon {
-            background-color: var(--accent-green); /* Solid green dot */
+            background-color: var(--accent-green);
             border-radius: 50%;
             width: 12px;
             height: 12px;
             font-size: 0;
-            padding: 0; /* No padding for solid dot */
-            /* Centering of this smaller dot inside the marker (20x24px) is handled by flex on marker */
+            padding: 0;
         }
 
         .timeline-item.status-pending:not(.is-final-eta) .timeline-icon {
             border: 2px solid var(--inactive-line-color);
             border-radius: 50%;
             background-color: var(--bg-color);
-            width: 14px; /* Outer diameter (10px inner + 2*2px border) */
+            width: 14px;
             height: 14px;
             font-size: 0;
             padding: 0;
-            /* Centering handled by flex on .timeline-marker */
         }
 
 
@@ -240,12 +245,13 @@
 
         <main>
             <section class="top-info">
-                <div class="status-icon-container">
-                    <span class="icon" id="top-status-main-icon">↑</span>
+                <div class="status-icon-container"> <!-- Border color fixed via CSS -->
+                    <span class="icon">→</span> <!-- Static icon for "on its way" -->
                 </div>
-                <div class="status-label" id="top-status-label">Money sent</div>
-                <div class="amount-display" id="display-amount">1,357.07 USD</div>
-                <div class="recipient-name" id="display-recipient">Saji Sebastian</div>
+                <!-- Static top status label based on the "active" step being the "Transfer successfully sent..." -->
+                <div class="status-label">Transfer successfully sent to your recipient's bank</div>
+                <div class="amount-display">1,357.07 USD</div>
+                <div class="recipient-name">Saji Sebastian</div>
                 <div class="general-tag">
                     <span class="icon">❖</span>
                     General
@@ -253,151 +259,78 @@
             </section>
 
             <nav class="tabs">
-                <button class="tab-button active" id="tab-updates">Updates</button>
-                <button class="tab-button" id="tab-details">Details</button>
+                <!-- "Updates" tab is active by default -->
+                <button class="tab-button active">Updates</button>
+                <button class="tab-button">Details</button>
             </nav>
 
-            <section class="timeline-section" id="updates-content">
-                <ul class="timeline" id="transfer-timeline">
-                    <!-- Timeline items will be injected here -->
+            <!-- "Updates" content is visible by default -->
+            <section class="timeline-section">
+                <ul class="timeline">
+                    <!-- Hardcoded timeline items for a specific scenario -->
+                    <li class="timeline-item status-completed">
+                        <div class="timeline-marker">
+                            <div class="timeline-icon">✓</div>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="timeline-timestamp">May 17 at 12:43 AM</p>
+                            <p class="timeline-step-title">You set up your transfer</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item status-completed">
+                        <div class="timeline-marker">
+                            <div class="timeline-icon">✓</div>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="timeline-timestamp">May 18 at 10:15 AM</p>
+                            <p class="timeline-step-title">We receive your USD</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item status-completed">
+                        <div class="timeline-marker">
+                            <div class="timeline-icon">✓</div>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="timeline-timestamp">May 20 at 5:30 AM</p>
+                            <p class="timeline-step-title">We converted your USD to INR</p>
+                            <p class="timeline-step-description">Exchange rate: 1 USD = 84.73 INR</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item status-active"> <!-- This is the "active" step -->
+                        <div class="timeline-marker">
+                            <div class="timeline-icon">✓</div>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="timeline-timestamp">May 23 at 6:00 PM</p>
+                            <p class="timeline-step-title">We paid out your INR</p>
+                            <p class="timeline-step-description">We've sent 115,000.00 INR to Saji Sebastian</p>
+                            <p class="timeline-step-description">Should arrive by May 26th by 07:30 PM CT</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item status-active">
+                        <div class="timeline-marker">
+                            <div class="timeline-icon">✓</div> <!-- CSS styles this as a dot -->
+                        </div>
+                        <div class="timeline-content">
+                            <!-- No timestamp for this specific pending ETA step, as per previous logic -->
+                            <p class="timeline-timestamp">May 26 at 7:30 PM</p>
+                            <p class="timeline-step-title">Transfer successfully sent to your recipient's bank</p>
+                            <p class="timeline-step-description">It can take up to 2 working days for Saji Sebastian's bank to credit the account.</p>
+                        </div>
+                    </li>
                 </ul>
             </section>
 
-            <section class="details-content" id="details-content" style="display: none; padding: 20px;">
-                <p>Transfer details would appear here if the "Details" tab was active and implemented.</p>
+            <!-- "Details" content is hidden by default and non-interactive -->
+            <section class="details-content" style="display: none; padding: 20px;">
+                <p>Transfer details would appear here. (This content is static and would not be shown by default as tabs are not functional without JS).</p>
             </section>
         </main>
 
         <footer class="footer-action">
-            <button class="action-button" id="footer-main-button">Track with recipient</button>
+            <button class="action-button">Track with recipient</button>
         </footer>
     </div>
-
-    <script>
-        // --- MOCK DATA ---
-        const transferData = {
-            topStatusLabel: "Money sent",
-            amountSent: "1,357.07 USD",
-            recipientName: "Saji Sebastian",
-            amountReceived: "115,000.00 INR",
-            exchangeRateUsed: "1 USD = 84.73 INR (Example)",
-            steps: [
-                { status: "completed", timestamp: "2024-05-17T00:43", title: "You set up your transfer", description: null },
-                { status: "completed", timestamp: "2024-05-18T10:15", title: "We receive your USD", description: null },
-                { status: "completed", timestamp: "2024-05-20T05:30", title: "We converted your USD to INR", description: `Exchange rate: 1 USD = 84.73 INR (Example).`},
-                { status: "active", timestamp: "2024-05-23T18:00", title: "We pay out your INR", description: "We've sent 115,000.00 INR to Saji Sebastian. It's on its way." },
-                { status: "pending", isFinalETA: true, timestamp: null, title: "Saji Sebastian receives your INR", description: "Should arrive by May 26th, 07:30 PM."}
-            ],
-            footerButtonText: "Track with recipient"
-        };
-
-        // --- DOM ELEMENTS ---
-        // (Same as previous)
-        const topStatusMainIcon = document.getElementById('top-status-main-icon');
-        const topStatusLabel = document.getElementById('top-status-label');
-        const displayAmount = document.getElementById('display-amount');
-        const displayRecipient = document.getElementById('display-recipient');
-        const timelineElement = document.getElementById('transfer-timeline');
-        const footerMainButton = document.getElementById('footer-main-button');
-        const tabUpdates = document.getElementById('tab-updates');
-        const tabDetails = document.getElementById('tab-details');
-        const updatesContent = document.getElementById('updates-content');
-        const detailsContentSection = document.getElementById('details-content');
-
-
-        // --- FUNCTIONS ---
-        function formatDisplayDate(isoString) {
-            if (!isoString) return null;
-            try {
-                const date = new Date(isoString);
-                // Format: May 17 at 12:43 AM
-                return date.toLocaleString('en-US', {
-                    month: 'short', day: 'numeric',
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                }).replace(',', ' at'); // Replace comma after day with ' at'
-            } catch (e) { console.error("Error formatting date:", isoString, e); return "Invalid Date"; }
-        }
-
-        function renderTopInfo(data) { // (Same as previous)
-            topStatusLabel.textContent = data.topStatusLabel;
-            displayAmount.textContent = data.amountSent;
-            displayRecipient.textContent = data.recipientName;
-            footerMainButton.textContent = data.footerButtonText;
-            const finalETAStep = data.steps.find(s => s.isFinalETA);
-            const allStepsBeforeFinalETADone = data.steps.slice(0, data.steps.findIndex(s => s.isFinalETA)).every(s => s.status === 'completed' || s.status === 'active');
-            if (finalETAStep && finalETAStep.status === 'pending' && allStepsBeforeFinalETADone) {
-                topStatusMainIcon.textContent = "→";
-                document.querySelector('.status-icon-container').style.borderColor = 'var(--accent-green)';
-            } else if (data.steps.every(s => s.status === 'completed')) {
-                 topStatusMainIcon.textContent = "✓";
-                 document.querySelector('.status-icon-container').style.borderColor = 'var(--accent-green)';
-            } else {
-                topStatusMainIcon.textContent = "↑";
-                document.querySelector('.status-icon-container').style.borderColor = 'var(--text-secondary-color)';
-            }
-        }
-
-        function renderTimeline(data) { // (Same as previous for icon content)
-            timelineElement.innerHTML = '';
-            data.steps.forEach((step, index) => {
-                const li = document.createElement('li');
-                li.classList.add('timeline-item', `status-${step.status}`);
-                if (step.isFinalETA) {
-                    li.classList.add('is-final-eta');
-                }
-
-                const markerDiv = document.createElement('div');
-                markerDiv.classList.add('timeline-marker');
-                const iconDiv = document.createElement('div');
-                iconDiv.classList.add('timeline-icon');
-
-                if ((step.status === 'completed' || step.status === 'active') && !step.isFinalETA) {
-                    iconDiv.textContent = '✓';
-                } else {
-                    iconDiv.textContent = '';
-                }
-                markerDiv.appendChild(iconDiv);
-
-                const contentDiv = document.createElement('div');
-                contentDiv.classList.add('timeline-content');
-
-                if (step.timestamp && (step.status === 'completed' || step.status === 'active')) {
-                    const timestampP = document.createElement('p');
-                    timestampP.classList.add('timeline-timestamp');
-                    timestampP.textContent = formatDisplayDate(step.timestamp);
-                    contentDiv.appendChild(timestampP);
-                } else if (step.status === 'pending') {
-                    const pendingTimestampP = document.createElement('p');
-                    pendingTimestampP.classList.add('timeline-timestamp');
-                    if (!step.isFinalETA) { pendingTimestampP.textContent = 'Expected soon'; }
-                    contentDiv.appendChild(pendingTimestampP);
-                }
-
-                const titleP = document.createElement('p');
-                titleP.classList.add('timeline-step-title');
-                titleP.textContent = step.title;
-                contentDiv.appendChild(titleP);
-
-                if (step.description) {
-                    const descriptionP = document.createElement('p');
-                    descriptionP.classList.add('timeline-step-description');
-                    descriptionP.textContent = step.description;
-                    contentDiv.appendChild(descriptionP);
-                }
-
-                li.appendChild(markerDiv);
-                li.appendChild(contentDiv);
-                timelineElement.appendChild(li);
-            });
-        }
-
-        // Event Listeners
-        tabUpdates.addEventListener('click', () => { tabUpdates.classList.add('active'); tabDetails.classList.remove('active'); updatesContent.style.display = 'block'; detailsContentSection.style.display = 'none'; });
-        tabDetails.addEventListener('click', () => { tabDetails.classList.add('active'); tabUpdates.classList.remove('active'); detailsContentSection.style.display = 'block'; updatesContent.style.display = 'none'; });
-
-        // Initial Render
-        renderTopInfo(transferData);
-        renderTimeline(transferData);
-    </script>
+    <!-- No JavaScript -->
 </body>
 </html>
